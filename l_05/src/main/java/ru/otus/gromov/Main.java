@@ -8,7 +8,6 @@ import javax.management.openmbean.CompositeData;
 import java.lang.management.GarbageCollectorMXBean;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.management.ManagementFactory.getGarbageCollectorMXBeans;
@@ -18,32 +17,35 @@ public class Main {
     public static void main(String[] args) {
         AtomicBoolean resume = new AtomicBoolean(true);
         AtomicLong countOperations = new AtomicLong(0L);
+        AtomicLong start = new AtomicLong(0L);
+        AtomicLong stop = new AtomicLong(0L);
+        ArrayList<Long> timePer1000 = new ArrayList<>();
         GcStatistic gcStatistic = new GcStatistic();
         installGCMonitoring(gcStatistic, resume);
-
 
         Thread fabricThread = new Thread() {
             @Override
             public void run() {
                 super.run();
+                start.set(System.currentTimeMillis());
                 ArrayList<String> list = new ArrayList<>();
-
                 try {
                     while (true) {
                         for (int i = 0; i < 30; i++) {
                             list.add(String.valueOf(Math.random() * 1_000_000_000));
-                            countOperations.incrementAndGet();
+                            if (countOperations.incrementAndGet() % 100_000 == 0) timePer1000.add(System.currentTimeMillis());
                         }
                         for (int i = 0; i < 5; i++) {
                             list.remove(list.size() - 1);
                         }
                         try {
-                            sleep(1);
+                            sleep(2);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
                 } catch (OutOfMemoryError e) {
+                    stop.set(System.currentTimeMillis());
                     resume.set(false);
                 }
             }
@@ -55,12 +57,14 @@ public class Main {
                 super.run();
                 do {
                     if (!resume.get()) {
+                        gcStatistic.setDuration(stop.get() - start.get());
+                        gcStatistic.setOperations(countOperations.get());
+                        gcStatistic.setDurationBigCycle(timePer1000);
                         gcStatistic.printStatistics();
-                        System.out.println("Count of operations: " + countOperations.get());
                         return;
                     }
                     try {
-                        sleep(500);
+                        sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
