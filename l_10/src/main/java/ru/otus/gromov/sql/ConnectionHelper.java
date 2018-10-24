@@ -1,14 +1,11 @@
-package ru.otus.gromov.connection;
+package ru.otus.gromov.sql;
 
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
-class ConnectionHelper {
+public class ConnectionHelper {
 
-    static Connection getConnection() {
+    public static Connection getConnection(String user, String password) {
         try {
             //Driver driver = new com.mysql.cj.jdbc.Driver();
             Driver driver = (Driver) Class.forName("org.h2.Driver").getConstructor().newInstance();
@@ -18,10 +15,9 @@ class ConnectionHelper {
                     "mem:" +               //host name
                     //"3306/" +                    //port
                     "test?" +               //db name
-                    "user=sa&" +              //login
-                    "password=&" +          //password
+                    "user=" +user+"&"+              //login
+                    "password=" + password +"&"+          //password
                     "useSSL=false";              //do not use Secure Sockets Layer
-
 
             return DriverManager.getConnection(url);
         } catch (SQLException |

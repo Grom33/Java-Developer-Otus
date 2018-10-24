@@ -1,4 +1,4 @@
-package ru.otus.gromov;
+package ru.otus.gromov.domain;
 
 public class DataSet {
     long id;

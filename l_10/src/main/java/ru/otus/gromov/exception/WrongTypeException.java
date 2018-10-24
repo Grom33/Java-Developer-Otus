@@ -1,4 +1,4 @@
-package ru.otus.gromov;
+package ru.otus.gromov.exception;
 
 public class WrongTypeException extends RuntimeException{
     public WrongTypeException() {

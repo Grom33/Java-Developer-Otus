@@ -1,14 +1,16 @@
-package ru.otus.gromov;
+package ru.otus.gromov.domain;
 
 public class UserDataSet extends DataSet {
     private String name;
     private int age;
+    private boolean checked;
 
 
-    public UserDataSet(long id, String name, int age) {
+    public UserDataSet(long id, String name, int age, boolean check) {
         super(id);
         this.name = name;
         this.age = age;
+        this.checked = check;
     }
 
     public String getName() {

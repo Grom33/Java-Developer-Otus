@@ -1,4 +1,4 @@
-package ru.otus.gromov;
+package ru.otus.gromov.reflection;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -26,7 +26,7 @@ public class ReflectionHelper {
         return fields;
     }
 
-    public static <T> T getFieldValue(Object object, String name) {
+    public static <T> T getFieldValueByName(Object object, String name) {
         Field field = null;
         try {
             field = object.getClass().getDeclaredField(name);
@@ -42,4 +42,17 @@ public class ReflectionHelper {
         return null;
     }
 
+	public static <T> T getFieldValueByField(Object object, Field field) {
+		try {
+			field.setAccessible(true);
+			return (T) field.get(object);
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} finally {
+			if (field != null) {
+				field.setAccessible(false);
+			}
+		}
+		return null;
+	}
 }
