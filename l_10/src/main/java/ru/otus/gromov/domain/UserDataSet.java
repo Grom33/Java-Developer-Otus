@@ -5,6 +5,8 @@ public class UserDataSet extends DataSet {
     private int age;
     private boolean checked;
 
+    public UserDataSet() {
+    }
 
     public UserDataSet(long id, String name, int age, boolean check) {
         super(id);
@@ -27,5 +29,15 @@ public class UserDataSet extends DataSet {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "UserDataSet{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                ", checked=" + checked +
+                ", id=" + id +
+                '}';
     }
 }

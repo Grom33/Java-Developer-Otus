@@ -2,18 +2,19 @@ package ru.otus.gromov;
 
 import ru.otus.gromov.domain.DataSet;
 import ru.otus.gromov.exception.WrongTypeException;
+import ru.otus.gromov.reflection.ReflectionHelper;
+import ru.otus.gromov.sql.ConnectionHelper;
 import ru.otus.gromov.sql.SQLHelper;
-import ru.otus.gromov.sql.SqlTransaction;
 
+import java.lang.reflect.Field;
 import java.sql.*;
+import java.util.List;
 
 import static ru.otus.gromov.sql.SQLHelper.buildQuery;
 
 public class MyHibernate implements Executor {
-	private Connection connection;
 
-	public MyHibernate(Connection connection) {
-		this.connection = connection;
+	public MyHibernate() {
 	}
 
 	@Override
@@ -25,61 +26,60 @@ public class MyHibernate implements Executor {
 	@Override
 	public Object load(long id, Class clazz) {
 		checkObjectType(clazz);
-
-		return null;
+		return loadObject(id, clazz);
 	}
 
 	public void saveObject(Object object) {
 		SQLHelper.transactionalExecute(
 				connection -> {
-					SQLHelper.doQuery(buildQuery(object), connection);
+					try (PreparedStatement ps = connection.prepareStatement(
+							buildQuery(object))) {
+						System.out.println(buildQuery(object));
+						System.out.println(ps.execute());
+					}
 					return null;
-				}
+				},
+				ConnectionHelper.getConnection("sa", "")
 		);
 	}
 
-	public Object loadObject(long id, Class clazz) {
-		/*String query = String.format("SELECT * FROM %s WHERE id=%s", clazz.getSimpleName(), id);
-		System.out.println(query);
-		ResultSet rs = execute(query);
-		System.out.println(rs);*/
-
-		SQLHelper.transactionalExecute(
+	public <T> T loadObject(long id, Class<T> clazz) {
+		return SQLHelper.transactionalExecute(
 				connection -> {
+					T result;
 					try (PreparedStatement ps = connection.prepareStatement(
-							String.format("SELECT * FROM %s WHERE id=%s",
-									clazz.getSimpleName(),
-									id))) {
-						ps.setLong(1, id);
+							String.format("SELECT * FROM %s r WHERE r.id = ?",
+									clazz.getSimpleName().toUpperCase()))) {
+						ps.setString(1, String.valueOf(id));
 						ResultSet rs = ps.executeQuery();
 						if (!rs.next()) {
 							throw new RuntimeException("UPS");
 						}
-						System.out.println(rs.getString("name"));
+						result = buildObject(rs, clazz);
 					}
-					return null;
-				}
+					return result;
+				},
+				ConnectionHelper.getConnection("sa", "")
 		);
-		return null;
 	}
 
+	private <T> T buildObject(ResultSet rs, Class<T> clazz) {
+		T result = ReflectionHelper.instantiate(clazz);
+		if (result == null) throw new RuntimeException("Can't instantiate object!");
+		List<Field> fields = ReflectionHelper.getFields(result);
 
-	private ResultSet execute(String query) {
-		try (Statement stmt = connection.createStatement()) {
-			stmt.execute(query);
-			ResultSet rs = stmt.getResultSet();
-			System.out.println("!!!" + rs);
-			return rs;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return null;
+		fields.forEach(field -> {
+			try {
+				ReflectionHelper.setFieldValueByField(result, field, rs.getObject(field.getName()));
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		});
+		return result;
 	}
+
 
 	private void checkObjectType(Class clazz) {
 		if (!DataSet.class.isAssignableFrom(clazz)) throw new WrongTypeException();
-	}
-
-	public MyHibernate() {
 	}
 }

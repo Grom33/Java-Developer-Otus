@@ -1,6 +1,7 @@
 package ru.otus.gromov.reflection;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,4 +56,54 @@ public class ReflectionHelper {
 		}
 		return null;
 	}
+    public static <T> T instantiate(Class<T> type, Object... args) {
+        try {
+            if (args.length == 0) {
+                return type.getDeclaredConstructor().newInstance();
+            } else {
+                Class<?>[] classes = toClasses(args);
+                return type.getDeclaredConstructor(classes).newInstance(args);
+            }
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static void setFieldValue(Object object, String name, Object value) {
+        Field field = null;
+        boolean isAccessible = true;
+        try {
+            field = object.getClass().getDeclaredField(name); //getField() for public fields
+            isAccessible = field.canAccess(object);
+            field.setAccessible(true);
+            field.set(object, value);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        } finally {
+            if (field != null && !isAccessible) {
+                field.setAccessible(false);
+            }
+        }
+    }
+
+    public static void setFieldValueByField(Object object, Field field, Object value) {
+        boolean isAccessible = true;
+        try {
+            isAccessible = field.canAccess(object);
+            field.setAccessible(true);
+            field.set(object, value);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } finally {
+            if (field != null && !isAccessible) {
+                field.setAccessible(false);
+            }
+        }
+    }
+
+    static private Class<?>[] toClasses(Object[] args) {
+        return Arrays.stream(args).map(Object::getClass).toArray(Class<?>[]::new);
+    }
 }

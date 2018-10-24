@@ -3,6 +3,9 @@ package ru.otus.gromov.domain;
 public class DataSet {
     long id;
 
+    public DataSet() {
+    }
+
     public DataSet(long id) {
         this.id = id;
     }

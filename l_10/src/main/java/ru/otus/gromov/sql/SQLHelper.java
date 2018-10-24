@@ -20,7 +20,6 @@ public class SQLHelper {
 		return resultQuery.toString().toUpperCase();
 	}
 
-
 	private static String getValueQuery(Object object) {
 		List<Field> fields = ReflectionHelper.getFields(object);
 		return String.format("INSERT INTO %s (%s) VALUES (%s);",
@@ -64,16 +63,7 @@ public class SQLHelper {
 		return object.toString();
 	}
 
-	public static <T> T execute(String sql, SqlExecutor<T> executor) {
-		try (Connection conn = ConnectionHelper.getConnection("sa", "");
-		     PreparedStatement ps = conn.prepareStatement(sql)) {
-			return executor.execute(ps);
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public static <T> T transactionalExecute(SqlTransaction<T> executor){
+	public static <T> T transactionalExecute(SqlTransaction<T> executor, Connection connection){
 		try (Connection conn = ConnectionHelper.getConnection("sa", "")) {
 			try {
 				conn.setAutoCommit(false);
@@ -89,9 +79,4 @@ public class SQLHelper {
 		}
 	}
 
-
-
-	public static void doQuery(String sql, Connection connection) {
-		execute(sql, PreparedStatement::execute);
-	}
 }
