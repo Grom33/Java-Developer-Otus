@@ -1,7 +1,12 @@
 package ru.otus.gromov;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otus.gromov.domain.DataSet;
-import ru.otus.gromov.exception.WrongTypeException;
+import ru.otus.gromov.exception.DBIsNotInstantiatedException;
+import ru.otus.gromov.exception.InstantiateEntityException;
+import ru.otus.gromov.exception.NotFoundException;
+import ru.otus.gromov.exception.WrongTypeOfEntityException;
 import ru.otus.gromov.reflection.ReflectionHelper;
 import ru.otus.gromov.sql.ConnectionHelper;
 import ru.otus.gromov.sql.SQLHelper;
@@ -10,62 +15,82 @@ import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.List;
 
-import static ru.otus.gromov.sql.SQLHelper.buildQuery;
-
 public class MyHibernate implements Executor {
+	private final Logger log = LoggerFactory.getLogger(getClass());
+	private ConnectionHelper connectionHelper;
+	private SQLHelper sqlHelper;
 
 	public MyHibernate() {
 	}
 
+	public void initDb(String user, String password) {
+		connectionHelper = new ConnectionHelper(user, password);
+		sqlHelper = new SQLHelper(connectionHelper);
+		log.info("Init DB & Sql Helpers, user {}, password {}", user, password);
+	}
+
+	private void checkInitDB() {
+		log.info("Check Helpers to initialised");
+		if (connectionHelper == null || sqlHelper == null)
+			throw new DBIsNotInstantiatedException();
+	}
+
+
 	@Override
 	public void save(Object object) {
+		log.info("Save object: {}", object);
 		checkObjectType(object.getClass());
+		checkInitDB();
 		saveObject(object);
 	}
 
 	@Override
 	public Object load(long id, Class clazz) {
+		log.info("Load object: id:{}, Class:{}", id, clazz);
 		checkObjectType(clazz);
+		checkInitDB();
 		return loadObject(id, clazz);
 	}
 
 	public void saveObject(Object object) {
-		SQLHelper.transactionalExecute(
+		log.info("Try to save use SQL Helper: Object:{}", object);
+		sqlHelper.transactionalExecute(
 				connection -> {
 					try (PreparedStatement ps = connection.prepareStatement(
-							buildQuery(object))) {
-						System.out.println(buildQuery(object));
-						System.out.println(ps.execute());
+							sqlHelper.buildQuery(object), Statement.RETURN_GENERATED_KEYS)) {
+						ps.executeUpdate();
 					}
 					return null;
-				},
-				ConnectionHelper.getConnection("sa", "")
+				}
 		);
 	}
 
 	public <T> T loadObject(long id, Class<T> clazz) {
-		return SQLHelper.transactionalExecute(
+		log.info("Try to load object with SQLHelper, id {}, Class {}", id, clazz);
+		return sqlHelper.transactionalExecute(
 				connection -> {
 					T result;
-					try (PreparedStatement ps = connection.prepareStatement(
-							String.format("SELECT * FROM %s r WHERE r.id = ?",
-									clazz.getSimpleName().toUpperCase()))) {
+					String sqlQuery = String.format(
+							"SELECT * FROM %s r WHERE r.id = ?",
+							clazz.getSimpleName().toUpperCase());
+					log.info("(Method loadObject) SQL query string: {}", sqlQuery);
+					try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
 						ps.setString(1, String.valueOf(id));
 						ResultSet rs = ps.executeQuery();
 						if (!rs.next()) {
-							throw new RuntimeException("UPS");
+							throw new NotFoundException(id);
 						}
 						result = buildObject(rs, clazz);
 					}
 					return result;
-				},
-				ConnectionHelper.getConnection("sa", "")
+				}
 		);
 	}
 
 	private <T> T buildObject(ResultSet rs, Class<T> clazz) {
+		log.info("Try to build object, Class {}", clazz);
 		T result = ReflectionHelper.instantiate(clazz);
-		if (result == null) throw new RuntimeException("Can't instantiate object!");
+		if (result == null) throw new InstantiateEntityException();
 		List<Field> fields = ReflectionHelper.getFields(result);
 
 		fields.forEach(field -> {
@@ -75,11 +100,12 @@ public class MyHibernate implements Executor {
 				e.printStackTrace();
 			}
 		});
+		log.info("Built object: {}", result);
 		return result;
 	}
 
 
 	private void checkObjectType(Class clazz) {
-		if (!DataSet.class.isAssignableFrom(clazz)) throw new WrongTypeException();
+		if (!DataSet.class.isAssignableFrom(clazz)) throw new WrongTypeOfEntityException();
 	}
 }

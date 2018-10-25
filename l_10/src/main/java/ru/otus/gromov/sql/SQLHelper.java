@@ -1,26 +1,54 @@
 package ru.otus.gromov.sql;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otus.gromov.reflection.ReflectionHelper;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class SQLHelper {
-	public static String buildQuery(Object object) {
+	private final Logger log = LoggerFactory.getLogger(getClass());
+	private final ConnectionHelper connectionHelper;
+
+	public SQLHelper(ConnectionHelper connectionHelper) {
+		this.connectionHelper = connectionHelper;
+	}
+
+	public <T> T transactionalExecute(SqlTransaction<T> executor) {
+		log.info("Begin execute transactional SQL operation.");
+		try (Connection conn = connectionHelper.getConnection()) {
+			try {
+				conn.setAutoCommit(false);
+				log.info("Open transaction.");
+				T res = executor.execute(conn);
+				conn.commit();
+				log.info("Commit transaction.");
+				return res;
+			} catch (SQLException e) {
+				log.info("Rollback transaction.");
+				conn.rollback();
+				throw new RuntimeException(e);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public String buildQuery(Object object) {
 		String initQuery = getInitQuery(object);
 		String valuesQuery = getValueQuery(object);
 		StringBuilder resultQuery = new StringBuilder();
 		resultQuery.append(initQuery);
 		resultQuery.append("\n");
 		resultQuery.append(valuesQuery);
-		return resultQuery.toString().toUpperCase();
+		return resultQuery.toString();
 	}
 
-	private static String getValueQuery(Object object) {
+	private String getValueQuery(Object object) {
 		List<Field> fields = ReflectionHelper.getFields(object);
 		return String.format("INSERT INTO %s (%s) VALUES (%s);",
 				object.getClass().getSimpleName(),
@@ -34,7 +62,7 @@ public class SQLHelper {
 		);
 	}
 
-	private static String getInitQuery(Object object) {
+	private String getInitQuery(Object object) {
 		List<Field> fields = ReflectionHelper.getFields(object);
 		StringBuilder initQuery = new StringBuilder();
 		initQuery.append(String.format("CREATE TABLE IF NOT EXISTS %s (", object.getClass().getSimpleName()));
@@ -48,7 +76,7 @@ public class SQLHelper {
 		return initQuery.toString();
 	}
 
-	private static String getSqlType(Class clazz) {
+	private String getSqlType(Class clazz) {
 		if (int.class.isAssignableFrom(clazz)) return "int";
 		if (long.class.isAssignableFrom(clazz)) return "bigint";
 		if (float.class.isAssignableFrom(clazz)) return "float";
@@ -58,25 +86,9 @@ public class SQLHelper {
 		return "varchar(255)";
 	}
 
-	private static String wrapString(Object object) {
+	private String wrapString(Object object) {
 		if (object instanceof String) return String.format("'%s'", object);
 		return object.toString();
-	}
-
-	public static <T> T transactionalExecute(SqlTransaction<T> executor, Connection connection){
-		try (Connection conn = ConnectionHelper.getConnection("sa", "")) {
-			try {
-				conn.setAutoCommit(false);
-				T res = executor.execute(conn);
-				conn.commit();
-				return res;
-			} catch (SQLException e) {
-				conn.rollback();
-				throw new RuntimeException(e);
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 }

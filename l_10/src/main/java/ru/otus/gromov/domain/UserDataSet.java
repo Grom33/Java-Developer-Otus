@@ -1,5 +1,7 @@
 package ru.otus.gromov.domain;
 
+import java.util.Objects;
+
 public class UserDataSet extends DataSet {
     private String name;
     private int age;
@@ -39,5 +41,20 @@ public class UserDataSet extends DataSet {
                 ", checked=" + checked +
                 ", id=" + id +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserDataSet that = (UserDataSet) o;
+        return age == that.age &&
+                checked == that.checked &&
+                name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, age, checked);
     }
 }
