@@ -1,62 +1,80 @@
 package ru.otus.gromov.base.dataSets;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "userdataset")
 public class UserDataSet extends DataSet {
 
-    @Column(name = "name")
+	@Column(name = "name")
+	private String name;
 
-    private String name;
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private AdressDataSet adress;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private AdressDataSet adress;
+	@OneToMany(mappedBy = "userDataSet", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	private List<PhoneDataSet> phones = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private PhoneDataSet phone;
+	//Important for Hibernate
+	public UserDataSet() {
+	}
 
-    //Important for Hibernate
-    public UserDataSet() {
-    }
+	public UserDataSet(String name, AdressDataSet adress, List<PhoneDataSet> phones) {
+		this.name = name;
+		this.adress = adress;
+		this.phones = phones;
+	}
 
-    public UserDataSet(String name, AdressDataSet adress, PhoneDataSet phone) {
-        this.name = name;
-        this.adress = adress;
-        this.phone = phone;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public AdressDataSet getAdress() {
-        return adress;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setAdress(AdressDataSet adress) {
-        this.adress = adress;
-    }
+	public AdressDataSet getAdress() {
+		return adress;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public void setAdress(AdressDataSet adress) {
+		this.adress = adress;
+	}
 
-    private void setName(String name) {
-        this.name = name;
-    }
 
-    public PhoneDataSet getPhone() {
-        return phone;
-    }
+	public List<PhoneDataSet> getPhones() {
+		return phones;
+	}
 
-    private void setPhone(PhoneDataSet phone) {
-        this.phone = phone;
-    }
+	public void setPhones(List<PhoneDataSet> phones) {
+		this.phones = phones;
+	}
 
-    @Override
-    public String toString() {
-        return "UserDataSet{" +
-                "id'" + getId() + '\'' +
-                "name='" + name + '\'' +
-                ", phone=" + phone +
-                '}';
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		//if (!(o instanceof UserDataSet)) return false;
+		//if (!super.equals(o)) return false;
+		UserDataSet that = (UserDataSet) o;
+		return name.equals(that.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(super.hashCode(), name);
+	}
+
+	@Override
+	public String toString() {
+		return "UserDataSet{" +
+				"name='" + name + '\'' +
+				", adress=" + adress +
+				", phones=" + phones +
+				'}';
+	}
 }
 

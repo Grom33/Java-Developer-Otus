@@ -6,6 +6,9 @@ import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
+import ru.otus.gromov.base.dataSets.AdressDataSet;
+import ru.otus.gromov.base.dataSets.DataSet;
+import ru.otus.gromov.base.dataSets.PhoneDataSet;
 import ru.otus.gromov.base.dataSets.UserDataSet;
 import ru.otus.gromov.dao.UserDataSetDAO;
 
@@ -18,7 +21,11 @@ public class DBServiceHibernateImpl implements DBService{
 
 	public DBServiceHibernateImpl() {
 		Configuration configuration = new Configuration()
-				.configure(new File("config/hibernate.cfg.xml"));
+				.configure(new File("config/hibernate.cfg.xml"))
+				.addAnnotatedClass(UserDataSet.class)
+				.addAnnotatedClass(AdressDataSet.class)
+				.addAnnotatedClass(PhoneDataSet.class);
+				//.addAnnotatedClass(DataSet.class);
 				//.addFile(new File("config/UserDataSet.hbm.xml"));
 
 		sessionFactory = createSessionFactory(configuration);

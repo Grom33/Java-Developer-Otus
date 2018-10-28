@@ -16,6 +16,10 @@
         <property name="hibernate.enable_lazy_load_no_trans">true</property>
         <property name="hibernate.connection.db_close_delay">-1</property>
 
+        <!--<mapping class="ru.otus.gromov.base.dataSets.UserDataSet"/>-->
+        <!--<mapping class="ru.otus.gromov.base.dataSets.DataSet"/>-->
+        <!--<mapping class="ru.otus.gromov.base.dataSets.AdressDataSet"/>-->
+        <!--<mapping class="ru.otus.gromov.base.dataSets.PhoneDataSet"/>-->
         <!--<mapping file="/config/UserDataSet.hbm.xml"/>-->
 
     </session-factory>

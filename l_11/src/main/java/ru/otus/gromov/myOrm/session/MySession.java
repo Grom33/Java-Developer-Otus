@@ -1,43 +1,41 @@
-package ru.otus.gromov.myOrm;
+package ru.otus.gromov.myOrm.session;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.otus.gromov.base.dataSets.DataSet;
-import ru.otus.gromov.myOrm.executor.Executor;
+import ru.otus.gromov.myOrm.domain.DataSet;
+import ru.otus.gromov.myOrm.MyOrm;
 import ru.otus.gromov.myOrm.exception.DBIsNotInstantiatedException;
 import ru.otus.gromov.myOrm.exception.InstantiateEntityException;
 import ru.otus.gromov.myOrm.exception.NotFoundException;
 import ru.otus.gromov.myOrm.exception.WrongTypeOfEntityException;
 import ru.otus.gromov.myOrm.reflection.ReflectionHelper;
-import ru.otus.gromov.myOrm.sql.ConnectionHelper;
-import ru.otus.gromov.myOrm.sql.SQLHelper;
 
 import java.lang.reflect.Field;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
-public class MyHibernate implements Executor {
+public class MySession implements AutoCloseable {
 	private final Logger log = LoggerFactory.getLogger(getClass());
-	private ConnectionHelper connectionHelper;
-	private SQLHelper sqlHelper;
+	private final MyOrm myOrm;
+	private MyORMStatus status;
 
-	public MyHibernate() {
+	public MySession(MyOrm myOrm) {
+		this.myOrm = myOrm;
 	}
 
-	public void initDb(String user, String password) {
-		connectionHelper = new ConnectionHelper(user, password);
-		sqlHelper = new SQLHelper(connectionHelper);
-		log.info("Init DB & Sql Helpers, user {}, password {}", user, password);
+	@Override
+	public void close() {
+		status = MyORMStatus.NOT_ACTIVE;
 	}
-
 	private void checkInitDB() {
 		log.info("Check Helpers to initialised");
-		if (connectionHelper == null || sqlHelper == null)
+		if (myOrm.isClosed() || myOrm.getSqlHelper() == null)
 			throw new DBIsNotInstantiatedException();
 	}
 
-
-	@Override
 	public void save(Object object) {
 		log.info("Save object: {}", object);
 		checkObjectType(object.getClass());
@@ -45,7 +43,6 @@ public class MyHibernate implements Executor {
 		saveObject(object);
 	}
 
-	@Override
 	public Object load(long id, Class clazz) {
 		log.info("Load object: id:{}, Class:{}", id, clazz);
 		checkObjectType(clazz);
@@ -53,12 +50,16 @@ public class MyHibernate implements Executor {
 		return loadObject(id, clazz);
 	}
 
+	public <T> List<T> loadAll(Class<T> Clazz){
+		return null;
+	}
+
 	public void saveObject(Object object) {
 		log.info("Try to save use SQL Helper: Object:{}", object);
-		sqlHelper.transactionalExecute(
+		myOrm.getSqlHelper().transactionalExecute(
 				connection -> {
 					try (PreparedStatement ps = connection.prepareStatement(
-							sqlHelper.buildQuery(object), Statement.RETURN_GENERATED_KEYS)) {
+							myOrm.getSqlHelper().buildQuery(object), Statement.RETURN_GENERATED_KEYS)) {
 						ps.executeUpdate();
 					}
 					return null;
@@ -68,7 +69,7 @@ public class MyHibernate implements Executor {
 
 	public <T> T loadObject(long id, Class<T> clazz) {
 		log.info("Try to load object with SQLHelper, id {}, Class {}", id, clazz);
-		return sqlHelper.transactionalExecute(
+		return myOrm.getSqlHelper().transactionalExecute(
 				connection -> {
 					T result;
 					String sqlQuery = String.format(

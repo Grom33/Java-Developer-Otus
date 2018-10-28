@@ -3,17 +3,18 @@ package ru.otus.gromov.myOrm.sql;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 
-public class ConnectionHelper {
+public class ConnectionHelper implements AutoCloseable {
 
 	private final String user;
 	private final String password;
+	private Connection connection;
 
 	public ConnectionHelper(String user, String password) {
 		this.user = user;
 		this.password = password;
 	}
 
-	public Connection getConnection() {
+	private void initConnection() {
 		try {
 			Driver driver = (Driver) Class.forName("org.h2.Driver").getConstructor().newInstance();
 			DriverManager.registerDriver(driver);
@@ -27,7 +28,7 @@ public class ConnectionHelper {
 					"useSSL=false;" +               //do not use Secure Sockets Layer
 					"DB_CLOSE_DELAY=-1";            //Keep data in memory after close connection
 
-			return DriverManager.getConnection(url);
+			connection = DriverManager.getConnection(url);
 		} catch (SQLException |
 				InstantiationException |
 				InvocationTargetException |
@@ -36,5 +37,15 @@ public class ConnectionHelper {
 				ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public Connection getConnection() throws SQLException {
+		if (connection == null || connection.isClosed()) initConnection();
+		return connection;
+	}
+
+	@Override
+	public void close() throws Exception {
+		connection.close();
 	}
 }
