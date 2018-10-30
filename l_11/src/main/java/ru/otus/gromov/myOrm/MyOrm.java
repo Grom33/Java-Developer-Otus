@@ -2,11 +2,9 @@ package ru.otus.gromov.myOrm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.otus.gromov.myOrm.exception.DBIsNotInstantiatedException;
 import ru.otus.gromov.myOrm.session.MyORMStatus;
 import ru.otus.gromov.myOrm.session.MySession;
-import ru.otus.gromov.myOrm.sql.ConnectionHelper;
-import ru.otus.gromov.myOrm.sql.SQLHelper;
+import ru.otus.gromov.myOrm.helpers.ConnectionHelper;
 
 import java.sql.*;
 
@@ -14,13 +12,17 @@ import java.sql.*;
 public class MyOrm {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	private Connection connection;
-	private SQLHelper sqlHelper;
 	private MyORMStatus status;
 
+
 	public MyOrm(ConnectionHelper connectionHelper) throws SQLException {
-		connection = connectionHelper.getConnection();
-		sqlHelper = new SQLHelper(connectionHelper);
+		initConnection(connectionHelper);
 		status = MyORMStatus.NOT_ACTIVE;
+	}
+
+	private void initConnection(ConnectionHelper connectionHelper) throws SQLException {
+		connection = connectionHelper.getConnection();
+		connection.setAutoCommit(false);
 	}
 
 
@@ -49,15 +51,15 @@ public class MyOrm {
 		return connection;
 	}
 
-	public SQLHelper getSqlHelper() {
-		return sqlHelper;
-	}
-
 	public void close() {
 		try {
 			connection.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void updateStatus(MySession session){
+		status = session.getStatus();
 	}
 }

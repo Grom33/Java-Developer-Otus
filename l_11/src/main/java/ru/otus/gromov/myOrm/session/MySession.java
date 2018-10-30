@@ -8,35 +8,41 @@ import ru.otus.gromov.myOrm.exception.DBIsNotInstantiatedException;
 import ru.otus.gromov.myOrm.exception.InstantiateEntityException;
 import ru.otus.gromov.myOrm.exception.NotFoundException;
 import ru.otus.gromov.myOrm.exception.WrongTypeOfEntityException;
-import ru.otus.gromov.myOrm.reflection.ReflectionHelper;
+import ru.otus.gromov.myOrm.helpers.ReflectionHelper;
+import ru.otus.gromov.myOrm.helpers.SQLQueryHelper;
 
 import java.lang.reflect.Field;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.List;
 
 public class MySession implements AutoCloseable {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	private final MyOrm myOrm;
 	private MyORMStatus status;
+	private Connection connection;
+	private SQLQueryHelper sqlQueryHelper;
 
 	public MySession(MyOrm myOrm) {
 		this.myOrm = myOrm;
+		connection = myOrm.getConnection();
+		sqlQueryHelper = new SQLQueryHelper();
+	}
+
+	public MyORMStatus getStatus(){
+		return status;
 	}
 
 	@Override
 	public void close() {
 		status = MyORMStatus.NOT_ACTIVE;
+		myOrm.updateStatus(this);
 	}
 	private void checkInitDB() {
-		log.info("Check Helpers to initialised");
-		if (myOrm.isClosed() || myOrm.getSqlHelper() == null)
-			throw new DBIsNotInstantiatedException();
+		log.info("Check DB connection");
+		if (myOrm.isClosed()) throw new DBIsNotInstantiatedException();
 	}
 
-	public void save(Object object) {
+	public void save(Object object, Class clazz) {
 		log.info("Save object: {}", object);
 		checkObjectType(object.getClass());
 		checkInitDB();
@@ -47,29 +53,40 @@ public class MySession implements AutoCloseable {
 		log.info("Load object: id:{}, Class:{}", id, clazz);
 		checkObjectType(clazz);
 		checkInitDB();
-		return loadObject(id, clazz);
+		Object result = null;
+		try {
+			result = loadObject(id, clazz);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return  result;
 	}
 
 	public <T> List<T> loadAll(Class<T> Clazz){
 		return null;
 	}
 
-	public void saveObject(Object object) {
+	private void saveObject(Object object) {
 		log.info("Try to save use SQL Helper: Object:{}", object);
-		myOrm.getSqlHelper().transactionalExecute(
-				connection -> {
-					try (PreparedStatement ps = connection.prepareStatement(
-							myOrm.getSqlHelper().buildQuery(object), Statement.RETURN_GENERATED_KEYS)) {
-						ps.executeUpdate();
+
+		try {
+			transactionalExecute(
+					connection -> {
+						try (PreparedStatement ps = connection.prepareStatement(
+								sqlQueryHelper.buildQuery(object), Statement.RETURN_GENERATED_KEYS)) {
+							ps.executeUpdate();
+						}
+						return null;
 					}
-					return null;
-				}
-		);
+			);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
-	public <T> T loadObject(long id, Class<T> clazz) {
-		log.info("Try to load object with SQLHelper, id {}, Class {}", id, clazz);
-		return myOrm.getSqlHelper().transactionalExecute(
+	private <T> T loadObject(long id, Class<T> clazz) throws SQLException {
+		log.info("Try to load object with SQLQueryHelper, id {}, Class {}", id, clazz);
+		return transactionalExecute(
 				connection -> {
 					T result;
 					String sqlQuery = String.format(
@@ -110,4 +127,21 @@ public class MySession implements AutoCloseable {
 	private void checkObjectType(Class clazz) {
 		if (!DataSet.class.isAssignableFrom(clazz)) throw new WrongTypeOfEntityException();
 	}
+
+	private <T> T transactionalExecute(SqlTransaction<T> executor) throws SQLException {
+		log.info("Begin execute transactional SQL operation.");
+			try {
+				log.info("Open transaction.");
+				T res = executor.execute(connection);
+				connection.commit();
+				log.info("Commit transaction.");
+				return res;
+			} catch (SQLException e) {
+				log.info("Rollback transaction.");
+				connection.rollback();
+				throw new RuntimeException(e);
+			}
+
+	}
+
 }

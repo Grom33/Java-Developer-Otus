@@ -5,3 +5,4 @@ public class DBIsNotInstantiatedException extends RuntimeException{
 		super("Connection to DB in myHibernate is not instantiated!");
 	}
 }
+//:todo Create my superClass error

@@ -1,4 +1,4 @@
-package ru.otus.gromov.myOrm.reflection;
+package ru.otus.gromov.myOrm.helpers;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

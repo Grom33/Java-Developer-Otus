@@ -22,7 +22,7 @@ public class UserDataSetDAOMyORM {
 	}
 
 	public void save(UserDataSet userDataSet){
-		session.save(new MyUserDataSet(1,"Ivan",11,true));
+		session.save(new MyUserDataSet(1,"Ivan",11,true), UserDataSet.class);
 	}
 
 	public List<UserDataSet> loadAll(){

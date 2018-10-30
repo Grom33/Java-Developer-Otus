@@ -1,4 +1,4 @@
-package ru.otus.gromov.myOrm.sql;
+package ru.otus.gromov.myOrm.helpers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;

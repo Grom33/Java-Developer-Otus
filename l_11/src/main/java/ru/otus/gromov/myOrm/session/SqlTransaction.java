@@ -1,4 +1,4 @@
-package ru.otus.gromov.myOrm.sql;
+package ru.otus.gromov.myOrm.session;
 
 import java.sql.Connection;
 import java.sql.SQLException;

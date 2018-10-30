@@ -4,7 +4,7 @@ import ru.otus.gromov.base.dataSets.UserDataSet;
 import ru.otus.gromov.dao.UserDataSetDAOMyORM;
 import ru.otus.gromov.myOrm.MyOrm;
 import ru.otus.gromov.myOrm.session.MySession;
-import ru.otus.gromov.myOrm.sql.ConnectionHelper;
+import ru.otus.gromov.myOrm.helpers.ConnectionHelper;
 
 import java.sql.SQLException;
 import java.util.List;
