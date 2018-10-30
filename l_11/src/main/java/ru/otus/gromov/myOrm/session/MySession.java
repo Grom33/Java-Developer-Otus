@@ -8,6 +8,7 @@ import ru.otus.gromov.myOrm.exception.DBIsNotInstantiatedException;
 import ru.otus.gromov.myOrm.exception.InstantiateEntityException;
 import ru.otus.gromov.myOrm.exception.NotFoundException;
 import ru.otus.gromov.myOrm.exception.WrongTypeOfEntityException;
+import ru.otus.gromov.myOrm.helpers.ObjectHelper;
 import ru.otus.gromov.myOrm.helpers.ReflectionHelper;
 import ru.otus.gromov.myOrm.helpers.SQLQueryHelper;
 
@@ -73,7 +74,7 @@ public class MySession implements AutoCloseable {
 			transactionalExecute(
 					connection -> {
 						try (PreparedStatement ps = connection.prepareStatement(
-								sqlQueryHelper.buildQuery(object), Statement.RETURN_GENERATED_KEYS)) {
+								ObjectHelper.prepareInitQueryForObject(object), Statement.RETURN_GENERATED_KEYS)) {
 							ps.executeUpdate();
 						}
 						return null;
