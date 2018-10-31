@@ -93,11 +93,9 @@ public class MySession implements AutoCloseable {
 			for (Field field : objectStructure) {
 				try {
 					Object loadedObj = null;
-					log.info("Verify field {} is {} ", field.getType(), (Collection.class.isAssignableFrom(field.getType())));
 					if (Collection.class.isAssignableFrom(field.getType())) {
 						ParameterizedType objectInCollectionType = (ParameterizedType) field.getGenericType();
 						Class<?> classOfObjectInCollection = (Class<?>) objectInCollectionType.getActualTypeArguments()[0];
-						log.info("!!! try  {} ", classOfObjectInCollection);
 						List<Long> childId = loadChildId(id, classOfObjectInCollection, clazz);
 						List<Object> childCollection = new ArrayList<>();
 						childId.forEach((i) -> childCollection.add(load(i, classOfObjectInCollection)));
@@ -118,7 +116,7 @@ public class MySession implements AutoCloseable {
 		log.info("Try to load child ID, parent id {}, parent Class {}, child Class {}", id, parentClass, childClass);
 		return transactionalExecute(
 				connection -> {
-					Long result;
+					long result;
 					String sqlQuery = String.format(
 							"SELECT * FROM %s r WHERE r.%s = ?",
 							parentClass.getSimpleName() + "_" + childClass.getSimpleName(),
@@ -182,9 +180,7 @@ public class MySession implements AutoCloseable {
 			e.printStackTrace();
 		}
 		List<T> listOfObject = new ArrayList<>();
-		listOfObjectId.forEach(i -> {
-			listOfObject.add((T) load(i, clazz));
-		});
+		listOfObjectId.forEach(i -> listOfObject.add((T) load(i, clazz)));
 		return listOfObject;
 	}
 
@@ -276,7 +272,5 @@ public class MySession implements AutoCloseable {
 			connection.rollback();
 			throw new RuntimeException(e);
 		}
-
 	}
-
 }

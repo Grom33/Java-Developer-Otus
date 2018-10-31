@@ -26,7 +26,7 @@ public class ConnectionHelper implements AutoCloseable {
 					"user=" + user + "&" +          //login
 					"password=" + password + "&" +  //password
 					"useSSL=false;"; // +               //do not use Secure Sockets Layer
-			//"DB_CLOSE_DELAY=-1";            //Keep data in memory after close connection
+					//"DB_CLOSE_DELAY=-1";            //Keep data in memory after close connection
 
 			connection = DriverManager.getConnection(url);
 		} catch (SQLException |

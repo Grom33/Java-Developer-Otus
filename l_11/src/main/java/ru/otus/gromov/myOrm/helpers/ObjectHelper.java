@@ -10,7 +10,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -76,8 +75,6 @@ public class ObjectHelper {
 		collection.forEach(
 				(obj) -> appendQueryToResultQueryFromChilObject(
 						resultQuery, obj, parentObject, funcJoin, funcChild));
-		;
-
 	}
 
 	private static void appendQueryToResultQueryFromChilObject(StringBuilder resultQuery,
@@ -98,7 +95,6 @@ public class ObjectHelper {
 		log.info("Rip Class: {}", clazz);
 		Map<String, Collection<Field>> objectStucture = new HashMap<>();
 		List<Field> fields = ReflectionHelper.getFields(clazz);
-		//fields.getClass().getTypeParameters().getComponentType()
 		fields.forEach(field -> {
 			String structureKey = NO_ANNOTATIONS;
 			if (field.getDeclaredAnnotations() != null) {

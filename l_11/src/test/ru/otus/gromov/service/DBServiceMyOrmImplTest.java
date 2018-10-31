@@ -27,7 +27,6 @@ public class DBServiceMyOrmImplTest {
 	@Before
 	public void setUp() throws Exception {
 		service = new DBServiceMyOrmImpl();
-
 		TEST_DATASET_1.setName("Petr Petrovich");
 		TEST_DATASET_1.setId(1L);
 		TEST_DATASET_1.setAdress(new AdressDataSet(1L, "Moscow, street street"));

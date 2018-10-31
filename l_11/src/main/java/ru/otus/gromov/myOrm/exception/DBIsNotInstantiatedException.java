@@ -1,8 +1,7 @@
 package ru.otus.gromov.myOrm.exception;
 
-public class DBIsNotInstantiatedException extends RuntimeException {
+public class DBIsNotInstantiatedException extends MyOrmException {
 	public DBIsNotInstantiatedException() {
 		super("Connection to DB in myHibernate is not instantiated!");
 	}
 }
-//:todo Create my superClass error
