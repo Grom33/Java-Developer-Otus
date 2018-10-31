@@ -36,8 +36,8 @@ public enum MyORMStatus {
 	 */
 	COMMITTING,
 	/**
-	 *  Status code indicating a transaction that is in the process of
-	 *  rolling back.
+	 * Status code indicating a transaction that is in the process of
+	 * rolling back.
 	 */
 	ROLLING_BACK;
 }

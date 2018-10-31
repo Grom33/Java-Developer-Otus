@@ -10,6 +10,13 @@ public class DataSet {
 	@Column(name = "id")
 	private long id;
 
+	public DataSet(long id) {
+		this.id = id;
+	}
+
+	public DataSet() {
+	}
+
 	public long getId() {
 		return id;
 	}

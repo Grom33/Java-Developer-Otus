@@ -7,7 +7,6 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 import ru.otus.gromov.base.dataSets.AdressDataSet;
-import ru.otus.gromov.base.dataSets.DataSet;
 import ru.otus.gromov.base.dataSets.PhoneDataSet;
 import ru.otus.gromov.base.dataSets.UserDataSet;
 import ru.otus.gromov.dao.UserDataSetDAO;
@@ -16,7 +15,7 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Function;
 
-public class DBServiceHibernateImpl implements DBService{
+public class DBServiceHibernateImpl implements DBService {
 	private final SessionFactory sessionFactory;
 
 	public DBServiceHibernateImpl() {
@@ -25,8 +24,6 @@ public class DBServiceHibernateImpl implements DBService{
 				.addAnnotatedClass(UserDataSet.class)
 				.addAnnotatedClass(AdressDataSet.class)
 				.addAnnotatedClass(PhoneDataSet.class);
-				//.addAnnotatedClass(DataSet.class);
-				//.addFile(new File("config/UserDataSet.hbm.xml"));
 
 		sessionFactory = createSessionFactory(configuration);
 	}
@@ -39,9 +36,7 @@ public class DBServiceHibernateImpl implements DBService{
 	}
 
 	public String getLocalStatus() {
-		return runInSession(session -> {
-			return session.getTransaction().getStatus().name();
-		});
+		return runInSession(session -> session.getTransaction().getStatus().name());
 	}
 
 	public void save(UserDataSet dataSet) {

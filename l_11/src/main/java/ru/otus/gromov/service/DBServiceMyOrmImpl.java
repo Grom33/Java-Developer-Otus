@@ -24,8 +24,8 @@ class DBServiceMyOrmImpl implements DBService {
 	}
 
 	@Override
-	public void save(UserDataSet dataSet){
-		try(MySession session = myOrm.getSession()) {
+	public void save(UserDataSet dataSet) {
+		try (MySession session = myOrm.getSession()) {
 			UserDataSetDAOMyORM dao = new UserDataSetDAOMyORM(session);
 			dao.save(dataSet);
 		}
@@ -33,7 +33,7 @@ class DBServiceMyOrmImpl implements DBService {
 
 	@Override
 	public UserDataSet read(long id) {
-		try(MySession session = myOrm.getSession()) {
+		try (MySession session = myOrm.getSession()) {
 			UserDataSetDAOMyORM dao = new UserDataSetDAOMyORM(session);
 			return dao.load(id);
 		}
@@ -41,8 +41,8 @@ class DBServiceMyOrmImpl implements DBService {
 	}
 
 	@Override
-	public UserDataSet readByName(String name){
-		try(MySession session = myOrm.getSession()) {
+	public UserDataSet readByName(String name) {
+		try (MySession session = myOrm.getSession()) {
 			UserDataSetDAOMyORM dao = new UserDataSetDAOMyORM(session);
 			return dao.loadByName(name);
 		}
@@ -50,7 +50,7 @@ class DBServiceMyOrmImpl implements DBService {
 
 	@Override
 	public List<UserDataSet> readAll() {
-		try(MySession session = myOrm.getSession()) {
+		try (MySession session = myOrm.getSession()) {
 			UserDataSetDAOMyORM dao = new UserDataSetDAOMyORM(session);
 			return dao.loadAll();
 		}

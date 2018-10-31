@@ -10,9 +10,8 @@ import ru.otus.gromov.base.dataSets.UserDataSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.PrimitiveIterator;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DBServiceHibernateImplTest {
 
@@ -48,24 +47,21 @@ public class DBServiceHibernateImplTest {
 	}
 
 	@Test
-	public void save() {
+	public void readAndSave() {
 		service.save(TEST_DATASET_1);
 		UserDataSet actual = service.read(TEST_DATASET_1.getId());
-		Assert.assertEquals(TEST_DATASET_1, actual);
-	}
-
-	@Test
-	public void read() {
-		service.save(TEST_DATASET_1);
-		UserDataSet actual = service.read(TEST_DATASET_1.getId());
-		Assert.assertEquals(TEST_DATASET_1, actual);
+		Assert.assertEquals(TEST_DATASET_1.getName(), actual.getName());
+		Assert.assertEquals(TEST_DATASET_1.getAdress(), actual.getAdress());
+		assertThat(TEST_DATASET_1.getPhones()).usingElementComparatorIgnoringFields("userDataSet").isEqualTo(actual.getPhones());
 	}
 
 	@Test
 	public void readByName() {
 		service.save(TEST_DATASET_1);
 		UserDataSet actual = service.readByName(TEST_DATASET_1.getName());
-		Assert.assertEquals(TEST_DATASET_1, actual);
+		Assert.assertEquals(TEST_DATASET_1.getName(), actual.getName());
+		Assert.assertEquals(TEST_DATASET_1.getAdress(), actual.getAdress());
+		assertThat(TEST_DATASET_1.getPhones()).usingElementComparatorIgnoringFields("userDataSet").isEqualTo(actual.getPhones());
 	}
 
 	@Test
@@ -74,7 +70,7 @@ public class DBServiceHibernateImplTest {
 		service.save(TEST_DATASET_2);
 		service.save(TEST_DATASET_3);
 		List<UserDataSet> actualList = service.readAll();
-		Assert.assertEquals(TEST_LIST_DATASET, actualList);
+		Assert.assertEquals(TEST_LIST_DATASET.size(), actualList.size());
 	}
 
 	@Test(expected = IllegalStateException.class)

@@ -7,7 +7,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "adress")
-public class AdressDataSet extends DataSet{
+public class AdressDataSet extends DataSet {
 
 	@Column(name = "adress")
 	private String adress;
@@ -16,6 +16,11 @@ public class AdressDataSet extends DataSet{
 	}
 
 	public AdressDataSet(String adress) {
+		this.adress = adress;
+	}
+
+	public AdressDataSet(long id, String adress) {
+		super(id);
 		this.adress = adress;
 	}
 

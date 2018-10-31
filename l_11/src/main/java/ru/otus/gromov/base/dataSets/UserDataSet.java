@@ -29,6 +29,13 @@ public class UserDataSet extends DataSet {
 		this.phones = phones;
 	}
 
+	public UserDataSet(long id, String name, AdressDataSet adress, List<PhoneDataSet> phones) {
+		super(id);
+		this.name = name;
+		this.adress = adress;
+		this.phones = phones;
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -55,17 +62,19 @@ public class UserDataSet extends DataSet {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		//if (!(o instanceof UserDataSet)) return false;
-		//if (!super.equals(o)) return false;
-		UserDataSet that = (UserDataSet) o;
-		return name.equals(that.name);
+	public boolean equals(Object object) {
+		if (this == object) return true;
+		if (object == null || getClass() != object.getClass()) return false;
+		if (!super.equals(object)) return false;
+		UserDataSet that = (UserDataSet) object;
+		return name.equals(that.name) &&
+				adress.equals(that.adress) &&
+				phones.equals(that.phones);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), name);
+		return Objects.hash(super.hashCode(), name, adress, phones);
 	}
 
 	@Override

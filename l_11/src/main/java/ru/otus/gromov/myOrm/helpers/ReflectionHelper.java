@@ -17,6 +17,11 @@ public class ReflectionHelper {
 	public static <T> List getFields(T t) {
 		List<Field> fields = new ArrayList<>();
 		Class clazz = t.getClass();
+		return getFields(clazz);
+	}
+
+	public static List<Field> getFields(Class clazz) {
+		List<Field> fields = new ArrayList<>();
 		while (clazz != Object.class) {
 			fields.addAll(Arrays.stream(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isStatic(field.getModifiers()))

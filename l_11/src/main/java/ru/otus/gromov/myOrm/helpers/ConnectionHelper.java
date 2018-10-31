@@ -22,11 +22,11 @@ public class ConnectionHelper implements AutoCloseable {
 			String url = "jdbc:h2:" +               //db type
 					"mem:" +                        //host name
 					//"3306/" +                     //port
-					"test?" +                       //db name
+					"test2?" +                       //db name
 					"user=" + user + "&" +          //login
 					"password=" + password + "&" +  //password
-					"useSSL=false;" +               //do not use Secure Sockets Layer
-					"DB_CLOSE_DELAY=-1";            //Keep data in memory after close connection
+					"useSSL=false;"; // +               //do not use Secure Sockets Layer
+			//"DB_CLOSE_DELAY=-1";            //Keep data in memory after close connection
 
 			connection = DriverManager.getConnection(url);
 		} catch (SQLException |

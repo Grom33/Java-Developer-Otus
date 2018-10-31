@@ -8,7 +8,6 @@ import ru.otus.gromov.myOrm.helpers.ConnectionHelper;
 
 import java.sql.*;
 
-
 public class MyOrm {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	private Connection connection;
@@ -25,8 +24,7 @@ public class MyOrm {
 		connection.setAutoCommit(false);
 	}
 
-
-	public boolean isClosed(){
+	public boolean isClosed() {
 		boolean result = true;
 		try {
 			result = connection.isClosed();
@@ -36,14 +34,12 @@ public class MyOrm {
 		return result;
 	}
 
-
-
 	public MySession getSession() {
 
 		return new MySession(this);
 	}
 
-	public String getStatus(){
+	public String getStatus() {
 		return status.toString();
 	}
 
@@ -59,7 +55,7 @@ public class MyOrm {
 		}
 	}
 
-	public void updateStatus(MySession session){
+	public void updateStatus(MySession session) {
 		status = session.getStatus();
 	}
 }

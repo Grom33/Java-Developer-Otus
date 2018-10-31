@@ -1,7 +1,6 @@
 package ru.otus.gromov.service;
 
 import ru.otus.gromov.base.dataSets.UserDataSet;
-import ru.otus.gromov.myOrm.domain.MyUserDataSet;
 
 import java.util.List;
 
