@@ -16,7 +16,7 @@ public class UserDataSet extends DataSet {
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private AdressDataSet adress;
 
-	@OneToMany(mappedBy = "userDataSet", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "userDataSet", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<PhoneDataSet> phones = new ArrayList<>();
 
 	//Important for Hibernate
