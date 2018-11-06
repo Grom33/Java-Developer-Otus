@@ -6,6 +6,8 @@ import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otus.gromov.base.dataSets.AdressDataSet;
 import ru.otus.gromov.base.dataSets.PhoneDataSet;
 import ru.otus.gromov.base.dataSets.UserDataSet;
@@ -16,9 +18,11 @@ import java.util.List;
 import java.util.function.Function;
 
 public class DBServiceHibernateImpl implements DBService {
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	private final SessionFactory sessionFactory;
 
 	public DBServiceHibernateImpl() {
+		log.info("Init Hibernate config");
 		Configuration configuration = new Configuration()
 				.configure(new File("config/hibernate.cfg.xml"))
 				.addAnnotatedClass(UserDataSet.class)
@@ -40,13 +44,20 @@ public class DBServiceHibernateImpl implements DBService {
 	}
 
 	public void save(UserDataSet dataSet) {
+		log.info("Save entity:  {}", dataSet);
+
 		try (Session session = sessionFactory.openSession()) {
 			UserDataSetDAO dao = new UserDataSetDAO(session);
-			dao.save(dataSet);
+			runInTransaction(session, (returnedDao) -> {
+				returnedDao.save(dataSet);
+				return null;
+			});
+
 		}
 	}
 
 	public UserDataSet read(long id) {
+		log.info("Read entity with Id:  {}", id);
 		return runInSession(session -> {
 			UserDataSetDAO dao = new UserDataSetDAO(session);
 			return dao.read(id);
@@ -54,6 +65,7 @@ public class DBServiceHibernateImpl implements DBService {
 	}
 
 	public UserDataSet readByName(String name) {
+		log.info("Read entity by name:  {}", name);
 		return runInSession(session -> {
 			UserDataSetDAO dao = new UserDataSetDAO(session);
 			return dao.readByName(name);
@@ -61,6 +73,7 @@ public class DBServiceHibernateImpl implements DBService {
 	}
 
 	public List<UserDataSet> readAll() {
+		log.info("Read all entity:  {}");
 		return runInSession(session -> {
 			UserDataSetDAO dao = new UserDataSetDAO(session);
 			return dao.readAll();
@@ -68,7 +81,32 @@ public class DBServiceHibernateImpl implements DBService {
 	}
 
 	public void shutdown() {
+		log.info("Shutdown service");
 		sessionFactory.close();
+	}
+
+	@Override
+	public void remove(long id) {
+		log.info("Remove entity with id:  {}", id);
+		try (Session session = sessionFactory.openSession()) {
+			runInTransaction(session, (dao) -> {
+				dao.remove(id);
+				return null;
+			});
+		}
+	}
+
+	@Override
+	public void update(UserDataSet user) {
+		log.info("Update entity:  {}", user);
+		try (Session session = sessionFactory.openSession()) {
+			runInTransaction(session, (dao) -> {
+				dao.update(user);
+				return null;
+			});
+			UserDataSetDAO dao = new UserDataSetDAO(session);
+			dao.update(user);
+		}
 	}
 
 	private <R> R runInSession(Function<Session, R> function) {
@@ -78,5 +116,14 @@ public class DBServiceHibernateImpl implements DBService {
 			transaction.commit();
 			return result;
 		}
+	}
+
+	private void runInTransaction(Session session, Function<UserDataSetDAO, Void> daoFunc) {
+		Transaction transaction = session.getTransaction();
+		transaction.begin();
+		UserDataSetDAO dao = new UserDataSetDAO(session);
+		daoFunc.apply(dao);
+		session.flush();
+		transaction.commit();
 	}
 }

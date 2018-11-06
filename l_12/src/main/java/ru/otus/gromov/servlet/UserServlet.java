@@ -1,10 +1,10 @@
 package ru.otus.gromov.servlet;
 
-import com.google.gson.Gson;
-import ru.otus.gromov.base.dataSets.AdressDataSet;
-import ru.otus.gromov.base.dataSets.PhoneDataSet;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otus.gromov.base.dataSets.UserDataSet;
-import ru.otus.gromov.helper.JsonHelper;
+import ru.otus.gromov.helper.UnProxyHelper;
 import ru.otus.gromov.service.DBService;
 import ru.otus.gromov.service.DBServiceHibernateImpl;
 
@@ -14,50 +14,44 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
+import java.util.function.Function;
 
 public class UserServlet extends HttpServlet {
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	private DBService service;
-	private Gson gson;
+	private ObjectMapper objectMapper;
 
 	public UserServlet() {
 	}
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
+		log.info("Init servlet {}", getClass());
 		super.init(config);
 		this.service = new DBServiceHibernateImpl();
-		this.gson = new Gson();
-		UserDataSet TEST_DATASET_1 = new UserDataSet();
-		UserDataSet TEST_DATASET_2 = new UserDataSet();
-		UserDataSet TEST_DATASET_3 = new UserDataSet();
-		TEST_DATASET_1.setName("Ivan Ivanovich");
-		TEST_DATASET_1.setAdress(new AdressDataSet("Moscow, street street"));
-		TEST_DATASET_1.setPhones(Collections.singletonList(new PhoneDataSet("903-940-59-34", TEST_DATASET_1)));
-		service.save(TEST_DATASET_1);
-		TEST_DATASET_2.setName("Petr Petrovich");
-		TEST_DATASET_2.setAdress(new AdressDataSet("SPB, street street"));
-		TEST_DATASET_2.setPhones(Collections.singletonList(new PhoneDataSet("911-220-59-34", TEST_DATASET_2)));
-		service.save(TEST_DATASET_2);
-		TEST_DATASET_3.setName("Sidr Sidorovich");
-		TEST_DATASET_3.setAdress(new AdressDataSet("Minsk, street street"));
-		TEST_DATASET_3.setPhones(Collections.singletonList(new PhoneDataSet("999-970-59-34", TEST_DATASET_3)));
-		service.save(TEST_DATASET_3);
+		this.objectMapper = new ObjectMapper();
 	}
 
 	public void doGet(HttpServletRequest request,
-	                  HttpServletResponse response) throws ServletException, IOException {
+	                  HttpServletResponse response) throws IOException {
+		log.info("Request {}, uri: {}", request.getMethod(), request.getRequestURI());
+		response.addHeader("Access-Control-Allow-Origin", "*");
 		String[] path = request.getRequestURI().split("/");
 		response.setContentType("application/json;charset=utf-8");
 		try {
 			switch (path.length) {
 				case 3:
-					response.getWriter().println(JsonHelper.initializeAndUnproxy(service.readAll()));
+					response.getWriter().println(
+							objectMapper.writeValueAsString(
+									UnProxyHelper.get(
+											service.readAll())));
 					response.setStatus(HttpServletResponse.SC_OK);
 					break;
 				case 4:
-					response.getWriter().println(JsonHelper.initializeAndUnproxy(service.read(Long.parseLong(path[3]))));
+					response.getWriter().println(
+							objectMapper.writeValueAsString(
+									UnProxyHelper.get(
+											service.read(Long.parseLong(path[3])))));
 					response.setStatus(HttpServletResponse.SC_OK);
 					break;
 				default:
@@ -70,27 +64,51 @@ public class UserServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		//super.doPost(req, resp);
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		log.info("Request {}, uri: {}", req.getMethod(), req.getRequestURI());
+		processRequest(req, resp, 3, (path) -> {
+			UserDataSet user = null;
+			try {
+				user = objectMapper.readValue(
+						req.getParameter("user"), UserDataSet.class);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			service.save(user);
+			resp.setStatus(HttpServletResponse.SC_OK);
+			return null;
+		});
+	}
+
+	@Override
+	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		log.info("Request {},  uri: {}", req.getMethod(), req.getRequestURI());
+		processRequest(req, resp, 4, (path) -> {
+			service.remove(Long.parseLong(path[3]));
+			resp.setStatus(HttpServletResponse.SC_OK);
+			return null;
+		});
+	}
+
+	private void processRequest(HttpServletRequest req,
+	                            HttpServletResponse resp,
+	                            int pathLevel,
+	                            Function<String[], Void> function) throws IOException {
+		log.info("Process request {} req {}", req.getMethod(), req.getRequestURI());
 		String[] path = req.getRequestURI().split("/");
 		resp.setContentType("application/json;charset=utf-8");
 		try {
-			if (path.length == 3) {
-				System.out.println("!!!!"+req.getInputStream());
-				//service.save(gson.fromJson(req.getParameter("user"), UserDataSet.class));
-				resp.setStatus(HttpServletResponse.SC_OK);
+			if (path.length == pathLevel) {
+				function.apply(path);
 			} else {
 				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			resp.getWriter().println(e);
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 	}
 
-	@Override
-	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		super.doDelete(req, resp);
-	}
 
 }

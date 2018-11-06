@@ -17,7 +17,12 @@ public class UserDataSetDAO {
 	}
 
 	public void save(UserDataSet dataSet) {
-		session.save(dataSet);
+		if (dataSet.getId() != 0L) {
+			session.update(dataSet);
+		} else {
+			session.save(dataSet);
+		}
+
 	}
 
 	public UserDataSet read(long id) {
@@ -38,5 +43,14 @@ public class UserDataSetDAO {
 		CriteriaQuery<UserDataSet> criteria = builder.createQuery(UserDataSet.class);
 		criteria.from(UserDataSet.class);
 		return session.createQuery(criteria).list();
+	}
+
+	public void remove(long id) {
+		System.out.println("!!!!  delete user " + id);
+		session.delete(read(id));
+	}
+
+	public void update(UserDataSet dataSet) {
+		session.update(dataSet);
 	}
 }

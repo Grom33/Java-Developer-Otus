@@ -1,0 +1,12 @@
+ <h4>Name: {{user.name}}</h4>
+ <p>adress: {{user.adress.adress}}</p>
+
+ <ul *ngFor="let phone of user.phones">
+   <li>
+     {{phone.number}}
+   </li>
+ </ul>
+
+ <a class="btn btn-primary btn active" role="button" aria-pressed="true" [routerLink]="['/users/edit', user.id]">Edit</a>
+ <button type="button" class="btn btn-danger" (click)="remove()">Remove</button>
+ 

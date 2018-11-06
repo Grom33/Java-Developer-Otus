@@ -16,4 +16,5 @@
         <property name="hibernate.enable_lazy_load_no_trans">true</property>
         <property name="hibernate.connection.db_close_delay">-1</property>
     </session-factory>
+
 </hibernate-configuration>

@@ -1,5 +1,7 @@
 package ru.otus.gromov.base.dataSets;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,7 @@ public class UserDataSet extends DataSet {
 	private AdressDataSet adress;
 
 	@OneToMany(mappedBy = "userDataSet", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JsonManagedReference
 	private List<PhoneDataSet> phones = new ArrayList<>();
 
 	//Important for Hibernate

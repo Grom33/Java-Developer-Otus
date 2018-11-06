@@ -16,4 +16,8 @@ public interface DBService {
 	List<UserDataSet> readAll();
 
 	void shutdown();
+
+	void remove(long id);
+
+	void update(UserDataSet user);
 }

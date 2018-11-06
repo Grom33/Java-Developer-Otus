@@ -1,5 +1,7 @@
 package ru.otus.gromov.base.dataSets;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 import java.util.Objects;
 
@@ -12,6 +14,7 @@ public class PhoneDataSet extends DataSet {
 
 	@ManyToOne
 	@JoinColumn(name = "user_id", nullable = false)
+	@JsonBackReference
 	private UserDataSet userDataSet;
 
 	public PhoneDataSet() {
