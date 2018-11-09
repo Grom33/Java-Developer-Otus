@@ -34,28 +34,23 @@ public class UserServlet extends HttpServlet {
 
 	public void doGet(HttpServletRequest request,
 	                  HttpServletResponse response) throws IOException {
-		log.info("Request {}, uri: {}", request.getMethod(), request.getRequestURI());
+		if (checkPath(request, response)) return;
 		response.addHeader("Access-Control-Allow-Origin", "*");
-		String[] path = request.getRequestURI().split("/");
 		response.setContentType("application/json;charset=utf-8");
 		try {
-			switch (path.length) {
-				case 3:
-					response.getWriter().println(
-							objectMapper.writeValueAsString(
-									UnProxyHelper.get(
-											service.readAll())));
-					response.setStatus(HttpServletResponse.SC_OK);
-					break;
-				case 4:
-					response.getWriter().println(
-							objectMapper.writeValueAsString(
-									UnProxyHelper.get(
-											service.read(Long.parseLong(path[3])))));
-					response.setStatus(HttpServletResponse.SC_OK);
-					break;
-				default:
-					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			if (request.getParameter("id") == null || request.getParameter("id").isBlank()) {
+				response.getWriter().println(
+						objectMapper.writeValueAsString(
+								UnProxyHelper.get(
+										service.readAll())));
+				response.setStatus(HttpServletResponse.SC_OK);
+			} else {
+				long userId = Long.parseLong(request.getParameter("id"));
+				response.getWriter().println(
+						objectMapper.writeValueAsString(
+								UnProxyHelper.get(
+										service.read(userId))));
+				response.setStatus(HttpServletResponse.SC_OK);
 			}
 		} catch (Exception e) {
 			response.getWriter().println(e);
@@ -65,8 +60,8 @@ public class UserServlet extends HttpServlet {
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		log.info("Request {}, uri: {}", req.getMethod(), req.getRequestURI());
-		processRequest(req, resp, 3, (path) -> {
+		if (checkPath(req, resp)) return;
+		processRequest(req, resp, (id) -> {
 			UserDataSet user = null;
 			try {
 				user = objectMapper.readValue(
@@ -75,7 +70,7 @@ public class UserServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 			service.save(user);
-			resp.setStatus(HttpServletResponse.SC_OK);
+			resp.setStatus(HttpServletResponse.SC_CREATED);
 			return null;
 		});
 	}
@@ -83,31 +78,43 @@ public class UserServlet extends HttpServlet {
 	@Override
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		log.info("Request {},  uri: {}", req.getMethod(), req.getRequestURI());
-		processRequest(req, resp, 4, (path) -> {
-			service.remove(Long.parseLong(path[3]));
-			resp.setStatus(HttpServletResponse.SC_OK);
+		processRequest(req, resp, (id) -> {
+			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			if (id != 0L) {
+				service.remove(id);
+				resp.setStatus(HttpServletResponse.SC_OK);
+			}
 			return null;
 		});
 	}
 
 	private void processRequest(HttpServletRequest req,
 	                            HttpServletResponse resp,
-	                            int pathLevel,
-	                            Function<String[], Void> function) throws IOException {
+	                            Function<Long, Void> function) throws IOException {
 		log.info("Process request {} req {}", req.getMethod(), req.getRequestURI());
-		String[] path = req.getRequestURI().split("/");
 		resp.setContentType("application/json;charset=utf-8");
 		try {
-			if (path.length == pathLevel) {
-				function.apply(path);
-			} else {
+			if (req.getParameter("id") == null || req.getParameter("id").isBlank()) {
 				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				function.apply(0L);
+			} else {
+				long userId = Long.parseLong(req.getParameter("id"));
+				function.apply(userId);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.getWriter().println(e);
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
+	}
+
+	private boolean checkPath(HttpServletRequest req, HttpServletResponse resp) {
+		log.info("Request {}, uri: {}", req.getMethod(), req.getRequestURI());
+		if (!"/rest/admin/".equals(req.getRequestURI())) {
+			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			return true;
+		}
+		return false;
 	}
 
 
