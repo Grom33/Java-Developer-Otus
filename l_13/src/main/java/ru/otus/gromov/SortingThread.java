@@ -3,7 +3,8 @@ package ru.otus.gromov;
 import java.util.Arrays;
 
 public class SortingThread extends Thread {
-	private int[] unsorted, sorted;
+	private final int[] unsorted;
+	private int[] sorted;
 
 	public SortingThread(int[] unsorted) {
 		this.unsorted = unsorted;
@@ -19,6 +20,4 @@ public class SortingThread extends Thread {
 	public int[] getSorted() {
 		return sorted;
 	}
-
-
 }
