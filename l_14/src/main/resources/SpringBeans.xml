@@ -1,0 +1,21 @@
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="myCache" class="ru.otus.gromov.cache.MyCacheImpl">
+        <constructor-arg name="maxElements" value="1000"/>
+        <constructor-arg name="lifeTimeMs" value="0"/>
+        <constructor-arg name="idleTimeMs" value="0"/>
+        <constructor-arg name="isEternal" value="true"/>
+    </bean>
+
+    <bean id="dbService" class="ru.otus.gromov.service.DBServiceHibernateImpl">
+    </bean>
+
+    <bean id="objectMapper" class="ru.otus.gromov.config.SpringConfiguration" factory-method="getObjectMapperBean">
+       
+    </bean>
+
+
+</beans>
