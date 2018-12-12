@@ -1,0 +1,17 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Adress</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let user of users">
+        <td><a [routerLink]="['/users', user.id]">{{user.name}}</a></td>
+        <td>{{user.adress.adress}}</td>
+    </tr>
+  </tbody>
+</table>
+<div>
+    <a class="btn btn-success" [routerLink]="['/users/edit', 0]" role="button">Add</a>
+  </div>

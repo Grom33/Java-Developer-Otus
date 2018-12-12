@@ -1,0 +1,42 @@
+<h3>Edit user information</h3>
+
+<form [formGroup]="userForm">
+  <div class="card-body">
+    <div class="form-group">
+      <label>Name</label>
+      <input class="form-control" type="text" formControlName="nameControl">
+    </div>
+    <div class="form-group">
+      <label>Adress</label>
+      <input class="form-control" type="text" formControlName="adressControl">
+    </div>
+    <div class="form-group">
+      <div class="form-row">
+          <div class="form-group col-md-6">
+            
+          <label>Phones</label>
+          <select multiple class="form-control" formControlName="phoneControl" id="phones">
+            <option *ngFor="let phone of user.phones" value={{phone.id}}>{{phone.number}}
+            </option>
+          </select> 
+        </div>
+        <div class="form-group col-md-4">
+          <label>Add phone</label>
+        <input class="form-control" type="text" id="addPhone" #addPho>
+         <a class="btn btn-success" (click)="add(addPho.value)" role="button">add</a>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div>
+        <a class="btn btn-success" (click)="save()" role="button">Save</a>
+      </div>
+      <div> .</div>
+      <div>
+        <a class="btn btn-primary" (click)="backClicked()" role="button">Cancel</a>
+      </div>
+
+    </div>
+  </div>
+</form>

@@ -1,0 +1,34 @@
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="myCache" class="ru.otus.gromov.cache.MyCacheImpl">
+        <constructor-arg name="maxElements" value="1000"/>
+        <constructor-arg name="lifeTimeMs" value="0"/>
+        <constructor-arg name="idleTimeMs" value="0"/>
+        <constructor-arg name="isEternal" value="true"/>
+    </bean>
+
+    <bean id="frontEndAdress" class="ru.otus.gromov.messageSystem.Address" primary="true">
+        <constructor-arg name="id" value="Frontend"/>
+    </bean>
+
+    <bean id="dBAdress" class="ru.otus.gromov.messageSystem.Address">
+        <constructor-arg name="id" value="DB"/>
+    </bean>
+
+    <bean id="messageSystem" class="ru.otus.gromov.messageSystem.MessageSystem"/>
+
+    <bean id="messageSystemContext" class="ru.otus.gromov.messageSystem.MessageSystemContext">
+        <constructor-arg name="messageSystem" ref="messageSystem"/>
+        <constructor-arg name="dbAddress" ref="dBAdress"/>
+        <constructor-arg name="frontAddress" ref="frontEndAdress"/>
+    </bean>
+
+    <bean id="dbService" class="ru.otus.gromov.service.DBServiceHibernateImpl">
+        <constructor-arg name="address" ref="dBAdress"/>
+        <constructor-arg name="context" ref="messageSystemContext"/>
+        <constructor-arg name="cache" ref="myCache"/>
+    </bean>
+</beans>
