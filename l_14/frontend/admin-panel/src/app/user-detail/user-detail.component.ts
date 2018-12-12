@@ -14,13 +14,13 @@ export class UserDetailComponent implements OnInit {
   constructor(private route: ActivatedRoute, private userService: UserService) { }
 
   ngOnInit() {
-    let userId: number = parseInt(this.route.snapshot.params['userId']);
+    const userId: number = parseInt(this.route.snapshot.params['userId']);
     this.userService.getUserById(userId).subscribe(
-       data=>{
+       data => {
         this.user = JSON.parse(JSON.stringify(data)) as User;
       });
   }
-  remove(){
+  remove() {
     this.userService.remove(this.user.id);
   }
 }

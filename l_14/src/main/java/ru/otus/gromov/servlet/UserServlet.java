@@ -2,17 +2,13 @@ package ru.otus.gromov.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.ehcache.CacheManager;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import ru.otus.gromov.base.dataSets.UserDataSet;
-import ru.otus.gromov.cache.MyCache;
 import ru.otus.gromov.helper.UnProxyHelper;
 import ru.otus.gromov.service.DBService;
 
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,16 +18,17 @@ import java.util.function.Function;
 @Slf4j
 public class UserServlet extends HttpServlet {
 	@Autowired
-	private  DBService service;
+	private DBService service;
 
-	@Autowired
-	private  ObjectMapper objectMapper;
+	private ObjectMapper objectMapper;
 
-@Override
-	public void init(ServletConfig config) throws ServletException {
-	log.info("Init servlet {}", getClass());
-	SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-}
+	@Override
+	public void init(ServletConfig config) {
+		log.info("Init servlet {}", getClass());
+		objectMapper = new ObjectMapper();
+		SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+
+	}
 
 	public void doGet(HttpServletRequest request,
 	                  HttpServletResponse response) throws IOException {
@@ -40,7 +37,7 @@ public class UserServlet extends HttpServlet {
 		response.setContentType("application/json;charset=utf-8");
 
 		try {
-			if (request.getParameter("id") == null || request.getParameter("id").isBlank()) {
+			if (request.getParameter("id") == null || request.getParameter("id").isEmpty()) {
 				response.getWriter().println(
 						objectMapper.writeValueAsString(
 								UnProxyHelper.get(
@@ -96,7 +93,7 @@ public class UserServlet extends HttpServlet {
 		log.info("Process request {} req {}", req.getMethod(), req.getRequestURI());
 		resp.setContentType("application/json;charset=utf-8");
 		try {
-			if (req.getParameter("id") == null || req.getParameter("id").isBlank()) {
+			if (req.getParameter("id") == null || req.getParameter("id").isEmpty()) {
 				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				function.apply(0L);
 			} else {
@@ -113,7 +110,7 @@ public class UserServlet extends HttpServlet {
 	private boolean checkPath(HttpServletRequest req, HttpServletResponse resp) {
 		log.info("Request {}, uri: {}", req.getMethod(), req.getRequestURI());
 		if (!"/MyApp/rest/admin/".equals(req.getRequestURI())) {
-			log.debug("!!!!! "+req.getRequestURI());
+			log.debug("!!!!! " + req.getRequestURI());
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return true;
 		}

@@ -11,11 +11,7 @@
     </bean>
 
     <bean id="dbService" class="ru.otus.gromov.service.DBServiceHibernateImpl">
+        <constructor-arg name="cache" ref="myCache"/>
     </bean>
-
-    <bean id="objectMapper" class="ru.otus.gromov.config.SpringConfiguration" factory-method="getObjectMapperBean">
-       
-    </bean>
-
 
 </beans>

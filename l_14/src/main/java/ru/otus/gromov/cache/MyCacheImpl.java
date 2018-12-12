@@ -1,4 +1,5 @@
 package ru.otus.gromov.cache;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.ref.SoftReference;
@@ -14,7 +15,7 @@ import java.util.function.Function;
  */
 
 @Slf4j
-public class MyCacheImpl<K, V> implements MyCache<K, V>  {
+public class MyCacheImpl<K, V> implements MyCache<K, V> {
 
 	private static final int TIME_THRESHOLD_MS = 5;
 

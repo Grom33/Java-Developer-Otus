@@ -5,22 +5,23 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class UserService{
-    API_URL_USER = 'http://localhost:8090/rest/admin/';
+    API_URL_USER = 'http://localhost:8080/MyApp/rest/admin/';
 
     constructor(private httpClient: HttpClient) { }
 
-    getUsers(){
+    getUsers() {
         return this.httpClient.get(`${this.API_URL_USER}`);
     }
 
     getUserById(userId: number) {
-        return this.httpClient.get(`${this.API_URL_USER}` + userId);
+      const params = new HttpParams().set('id', String(userId));
+        return this.httpClient.get(`${this.API_URL_USER}`, { params: params });
     }
- 
-    save(user: User){
+
+    save(user: User) {
         const headers = new HttpHeaders()
         .set('Content-Type', 'application/x-www-form-urlencoded');
-        //.set('Content-Type', 'application/json');
+        // .set('Content-Type', 'application/json');
         const body = new HttpParams()
         .set('user', JSON.stringify(user));
       this.httpClient.post(`${this.API_URL_USER}`, body, { headers })
@@ -38,8 +39,9 @@ export class UserService{
         );
     }
 
-    remove(id: number){
-        this.httpClient.delete(`${this.API_URL_USER}` + id)
+    remove(id: number) {
+      const params = new HttpParams().set('id', String(id));
+        this.httpClient.delete(`${this.API_URL_USER}`, { params: params })
         .subscribe(
           val => {
             console.log('DELETE call successful value returned in body',

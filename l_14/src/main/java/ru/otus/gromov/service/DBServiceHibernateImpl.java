@@ -7,7 +7,6 @@ import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.otus.gromov.base.dataSets.AdressDataSet;
 import ru.otus.gromov.base.dataSets.PhoneDataSet;
 import ru.otus.gromov.base.dataSets.UserDataSet;
@@ -17,17 +16,14 @@ import ru.otus.gromov.dao.UserDataSetDAO;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 @Slf4j
 public class DBServiceHibernateImpl implements DBService {
 	private final SessionFactory sessionFactory;
-
-	@Autowired
 	private MyCache<Long, UserDataSet> cache;
 
-	public DBServiceHibernateImpl() {
+	public DBServiceHibernateImpl(MyCache<Long, UserDataSet> cache) {
 		log.info("Init Hibernate config");
 		URL hibernateConf = this.getClass().getResource("/hibernate.cfg.xml");
 		Configuration configuration = new Configuration()
@@ -37,6 +33,7 @@ public class DBServiceHibernateImpl implements DBService {
 				.addAnnotatedClass(PhoneDataSet.class);
 
 		sessionFactory = createSessionFactory(configuration);
+		this.cache = cache;
 	}
 
 	private static SessionFactory createSessionFactory(Configuration configuration) {
@@ -52,7 +49,6 @@ public class DBServiceHibernateImpl implements DBService {
 
 	public void save(UserDataSet dataSet) {
 		log.info("Save entity:  {}", dataSet);
-		cache.put(dataSet.getId(), dataSet);
 		try (Session session = sessionFactory.openSession()) {
 			UserDataSetDAO dao = new UserDataSetDAO(session);
 			runInTransaction(session, (returnedDao) -> {
@@ -60,15 +56,22 @@ public class DBServiceHibernateImpl implements DBService {
 				return null;
 			});
 		}
+		cache.put(dataSet.getId(), dataSet);
 	}
 
 	public UserDataSet read(long id) {
 		log.info("Read entity with Id:  {}", id);
-		Optional<UserDataSet> userDataSet = Optional.of(cache.get(id));
-		return userDataSet.orElseGet(() -> runInSession(session -> {
-			UserDataSetDAO dao = new UserDataSetDAO(session);
-			return dao.read(id);
-		}));
+		UserDataSet userDataSet = cache.get(id);
+		log.info("Entity in cache:  {}", userDataSet);
+		if (userDataSet == null) {
+			userDataSet = runInSession(session -> {
+				log.info("Run session:  {}");
+				UserDataSetDAO dao = new UserDataSetDAO(session);
+				return dao.read(id);
+			});
+		}
+		log.info("Entity:  {}", userDataSet);
+		return userDataSet;
 	}
 
 	public UserDataSet readByName(String name) {
@@ -106,7 +109,7 @@ public class DBServiceHibernateImpl implements DBService {
 	@Override
 	public void update(UserDataSet user) {
 		log.info("Update entity:  {}", user);
-		cache.put(user.getId(), user);
+
 		try (Session session = sessionFactory.openSession()) {
 			runInTransaction(session, (dao) -> {
 				dao.update(user);
@@ -115,6 +118,7 @@ public class DBServiceHibernateImpl implements DBService {
 			UserDataSetDAO dao = new UserDataSetDAO(session);
 			dao.update(user);
 		}
+		cache.put(user.getId(), user);
 	}
 
 	private <R> R runInSession(Function<Session, R> function) {
