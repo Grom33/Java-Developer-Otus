@@ -41,6 +41,8 @@ public class UserServlet extends HttpServlet implements FrontendService {
 	private final Map<Long, Object> answers = new WeakHashMap<>();
 	private final AtomicLong ticket = new AtomicLong();
 
+	private final Object synch = new Object();
+
 	@Override
 	public void init(ServletConfig config) {
 		log.info("Init servlet {}", getClass());
@@ -75,17 +77,26 @@ public class UserServlet extends HttpServlet implements FrontendService {
 		}
 
 		long timeToStop = System.currentTimeMillis() + TIME_OUT;
-		do {
-			if (answers.containsKey(answerIndex)) {
-				Object answer = answers.get(answerIndex);
-				log.info("get answer {}", answer);
-				response.getWriter().println(
-						objectMapper.writeValueAsString(
-								UnProxyHelper.get(answer)));
-				response.setStatus(HttpServletResponse.SC_OK);
-				return;
+		try {
+			synchronized (synch) {
+				while (!answers.containsKey(answerIndex)) {
+					synch.wait();
+				}
 			}
-		} while (System.currentTimeMillis() <= timeToStop);
+
+			Object answer = answers.get(answerIndex);
+			log.info("get answer {}", answer);
+			response.getWriter().println(
+					objectMapper.writeValueAsString(
+							UnProxyHelper.get(answer)));
+			answers.remove(answerIndex);
+			response.setStatus(HttpServletResponse.SC_OK);
+			return;
+
+		} catch (InterruptedException e) {
+			log.error(e.toString());
+		}
+
 		response.getWriter().println("Time out!");
 	}
 
@@ -170,7 +181,10 @@ public class UserServlet extends HttpServlet implements FrontendService {
 
 	@Override
 	public void addAnswer(long index, Object answer) {
-		log.info("Answer is back");
-		answers.put(index, answer);
+		synchronized (synch) {
+			log.info("Answer is back");
+			answers.put(index, answer);
+			synch.notify();
+		}
 	}
 }
