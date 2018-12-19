@@ -29,9 +29,8 @@ public class DBServiceHibernateImpl implements DBService {
 
 	public DBServiceHibernateImpl() {
 		log.info("Init Hibernate config");
-		URL hibernateConf = this.getClass().getResource("/hibernate.cfg.xml");
 		Configuration configuration = new Configuration()
-				.configure(new File(hibernateConf.getFile()))
+				.configure()
 				.addAnnotatedClass(UserDataSet.class)
 				.addAnnotatedClass(AdressDataSet.class)
 				.addAnnotatedClass(PhoneDataSet.class);

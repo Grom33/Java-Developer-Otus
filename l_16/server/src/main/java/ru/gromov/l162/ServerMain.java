@@ -22,10 +22,10 @@ import java.util.logging.Logger;
 public class ServerMain {
     private static final Logger logger = Logger.getLogger(ServerMain.class.getName());
 
-    private static final String FRONT_START_COMMAND = "java -jar ../front/target/front.jar";
-    private static final String DB_START_COMMAND = "java -jar ../db/target/db.jar";
+    private static final String FRONT_START_COMMAND = "java -jar ../../front/target/front.jar";
+    private static final String DB_START_COMMAND = "java -jar ../../db/target/db.jar";
     private static final int CLIENT_START_DELAY_SEC = 1;
-    private static final int CLIENTS_COUNT = 0;
+    private static final int CLIENTS_COUNT = 1;
 
     public static void main(String[] args) throws Exception {
         new ServerMain().start();
